@@ -86,5 +86,6 @@ jobs:
             build/experiment-results/*.csv
             build/experiment-results/analysis_summary.md
             docs/assets/scheduler_sweep.svg
+            docs/assets/scheduler_iterations.svg
             docs/assets/kv_sweep.svg
             docs/assets/execution_snapshot.svg

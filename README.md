@@ -138,7 +138,9 @@ This gives 36 scheduler settings and 108 workload/settings records. Each record 
 
 The KV-cache sweep tests page sizes 8, 16, 32 and 64 over short, mixed, ragged and long sequences. It records logical tokens, reserved tokens, reserved bytes, equivalent contiguous reservation, reservation reduction and internal fragmentation. Both sweeps write CSV files. The analysis script checks the data and creates charts and a Markdown summary based on those CSV rows.
 
-![Scheduler configuration experiment](docs/assets/scheduler_sweep.svg)
+![Scheduler decode-gap experiment](docs/assets/scheduler_sweep.svg)
+
+![Scheduler work by prefill chunk](docs/assets/scheduler_iterations.svg)
 
 ![KV-cache allocation experiment](docs/assets/kv_sweep.svg)
 
@@ -146,7 +148,7 @@ The KV-cache sweep tests page sizes 8, 16, 32 and 64 over short, mixed, ragged a
 
 The detailed host results, including the parameter tables and findings, are in [Host experiment summary](dlse_runtime/docs/host_experiment_summary.md).
 
-The generated CSV files should be kept with their environment record when results are used in a report. The host CI workflow also uploads the experiment data, logs, and generated charts as run artifacts.
+The measured row data is checked in for direct inspection: [scheduler sweep CSV](dlse_runtime/docs/data/host_scheduler_sweep.csv) and [KV-cache sweep CSV](dlse_runtime/docs/data/host_kv_cache_sweep.csv). The CI workflow also uploads each run's CSV files, logs, and generated charts as artifacts.
 
 ## CUDA build and experiments
 

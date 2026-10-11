@@ -43,7 +43,7 @@ class RepositoryQualityTests(unittest.TestCase):
         assets = ROOT / "docs" / "assets"
         expected = {
             "architecture.svg", "disaggregated_flow.svg", "host_validation.svg",
-            "scheduler_trace.svg", "kv_reservation.svg", "test_matrix.svg",
+            "scheduler_trace.svg", "kv_reservation.svg", "test_matrix.svg", "scheduler_iterations.svg",
             "scheduler_sweep.svg", "kv_sweep.svg", "execution_snapshot.svg",
         }
         self.assertTrue(expected.issubset({p.name for p in assets.glob("*.svg")}))

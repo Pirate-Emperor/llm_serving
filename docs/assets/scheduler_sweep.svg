@@ -1,6 +1,51 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="740" viewBox="0 0 1440 740">
-<rect width="1440" height="740" rx="26" fill="#0b1220"/><text x="64" y="70" font-family="DejaVu Sans, sans-serif" font-size="34" font-weight="700" fill="#f8fafc">Scheduler experiment matrix</text><text x="64" y="112" font-family="DejaVu Sans, sans-serif" font-size="20" fill="#b6c2d2">36 parameter settings × 3 workloads = 108 simulation records.</text>
-<rect x="64" y="155" width="1312" height="360" rx="16" fill="#111c2f" stroke="#334155" stroke-width="2"/><text x="96" y="200" font-family="DejaVu Sans, sans-serif" font-size="23" font-weight="700" fill="#e2e8f0">Prefill chunk size</text><text x="96" y="250" font-family="DejaVu Sans, sans-serif" font-size="19" fill="#cbd5e1">8 tokens</text><text x="96" y="310" font-family="DejaVu Sans, sans-serif" font-size="19" fill="#cbd5e1">16 tokens</text><text x="96" y="370" font-family="DejaVu Sans, sans-serif" font-size="19" fill="#cbd5e1">32 tokens</text><text x="96" y="430" font-family="DejaVu Sans, sans-serif" font-size="19" fill="#cbd5e1">64 tokens</text>
-<text x="340" y="200" font-family="DejaVu Sans, sans-serif" font-size="21" font-weight="700" fill="#7dd3fc">Batch = 4</text><text x="650" y="200" font-family="DejaVu Sans, sans-serif" font-size="21" font-weight="700" fill="#34d399">Batch = 8</text><text x="960" y="200" font-family="DejaVu Sans, sans-serif" font-size="21" font-weight="700" fill="#fbbf24">Batch = 16</text>
-<g fill="#1e3a5f" stroke="#60a5fa" stroke-width="1.5"><rect x="320" y="225" width="250" height="42" rx="6"/><rect x="320" y="285" width="250" height="42" rx="6"/><rect x="320" y="345" width="250" height="42" rx="6"/><rect x="320" y="405" width="250" height="42" rx="6"/></g><g fill="#14532d" stroke="#34d399" stroke-width="1.5"><rect x="630" y="225" width="250" height="42" rx="6"/><rect x="630" y="285" width="250" height="42" rx="6"/><rect x="630" y="345" width="250" height="42" rx="6"/><rect x="630" y="405" width="250" height="42" rx="6"/></g><g fill="#713f12" stroke="#fbbf24" stroke-width="1.5"><rect x="940" y="225" width="250" height="42" rx="6"/><rect x="940" y="285" width="250" height="42" rx="6"/><rect x="940" y="345" width="250" height="42" rx="6"/><rect x="940" y="405" width="250" height="42" rx="6"/></g><text x="720" y="485" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="18" fill="#cbd5e1">Each cell also tests token budgets 32, 64 and 128.</text>
-<rect x="64" y="550" width="400" height="132" rx="14" fill="#17243a"/><text x="94" y="592" font-family="DejaVu Sans, sans-serif" font-size="23" font-weight="700" fill="#bae6fd">Decode-heavy</text><text x="94" y="632" font-family="DejaVu Sans, sans-serif" font-size="18" fill="#e2e8f0">Many active generations</text><rect x="520" y="550" width="400" height="132" rx="14" fill="#16312f"/><text x="550" y="592" font-family="DejaVu Sans, sans-serif" font-size="23" font-weight="700" fill="#a7f3d0">Mixed long prompts</text><text x="550" y="632" font-family="DejaVu Sans, sans-serif" font-size="18" fill="#d1fae5">Decode plus four long prompts</text><rect x="976" y="550" width="400" height="132" rx="14" fill="#33253b"/><text x="1006" y="592" font-family="DejaVu Sans, sans-serif" font-size="23" font-weight="700" fill="#fae8ff">Prompt burst</text><text x="1006" y="632" font-family="DejaVu Sans, sans-serif" font-size="18" fill="#f5d0fe">Eight varied prompt lengths</text></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="850" viewBox="0 0 1440 850"><rect width="100%" height="100%" rx="24" fill="#0b1220"/><text x="64" y="64" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="32" font-weight="700" fill="#f8fafc">Scheduler experiment: decode-gap percentiles</text>
+<text x="64" y="105" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="20" font-weight="400" fill="#b6c2d2">108 measured simulation records across 36 parameter settings</text>
+<text x="64" y="145" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="18" font-weight="400" fill="#b6c2d2">Mean p95 decode gap in scheduler iterations; lower is better for this metric.</text>
+<line x1="370" y1="175" x2="370" y2="780" stroke="#334155"/>
+<text x="370" y="165" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#94a3b8">0</text>
+<line x1="680" y1="175" x2="680" y2="780" stroke="#334155"/>
+<text x="680" y="165" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#94a3b8">1</text>
+<line x1="990" y1="175" x2="990" y2="780" stroke="#334155"/>
+<text x="990" y="165" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#94a3b8">2</text>
+<line x1="1300" y1="175" x2="1300" y2="780" stroke="#334155"/>
+<text x="1300" y="165" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#94a3b8">3</text>
+<text x="64" y="208" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="22" font-weight="700" fill="#f8fafc">Decode-heavy</text>
+<text x="105" y="242" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="400" fill="#cbd5e1">chunk 8</text>
+<rect x="370" y="224" width="620" height="24" rx="5" fill="#38bdf8"/>
+<text x="1002" y="242" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#f8fafc">2.00 iter</text>
+<text x="105" y="276" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="400" fill="#cbd5e1">chunk 16</text>
+<rect x="370" y="258" width="620" height="24" rx="5" fill="#34d399"/>
+<text x="1002" y="276" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#f8fafc">2.00 iter</text>
+<text x="105" y="310" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="400" fill="#cbd5e1">chunk 32</text>
+<rect x="370" y="292" width="620" height="24" rx="5" fill="#fbbf24"/>
+<text x="1002" y="310" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#f8fafc">2.00 iter</text>
+<text x="105" y="344" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="400" fill="#cbd5e1">chunk 64</text>
+<rect x="370" y="326" width="620" height="24" rx="5" fill="#e879f9"/>
+<text x="1002" y="344" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#f8fafc">2.00 iter</text>
+<text x="64" y="408" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="22" font-weight="700" fill="#f8fafc">Mixed long prompts</text>
+<text x="105" y="442" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="400" fill="#cbd5e1">chunk 8</text>
+<rect x="370" y="424" width="723.3333333333334" height="24" rx="5" fill="#38bdf8"/>
+<text x="1105.3333333333335" y="442" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#f8fafc">2.33 iter</text>
+<text x="105" y="476" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="400" fill="#cbd5e1">chunk 16</text>
+<rect x="370" y="458" width="723.3333333333334" height="24" rx="5" fill="#34d399"/>
+<text x="1105.3333333333335" y="476" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#f8fafc">2.33 iter</text>
+<text x="105" y="510" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="400" fill="#cbd5e1">chunk 32</text>
+<rect x="370" y="492" width="723.3333333333334" height="24" rx="5" fill="#fbbf24"/>
+<text x="1105.3333333333335" y="510" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#f8fafc">2.33 iter</text>
+<text x="105" y="544" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="400" fill="#cbd5e1">chunk 64</text>
+<rect x="370" y="526" width="723.3333333333334" height="24" rx="5" fill="#e879f9"/>
+<text x="1105.3333333333335" y="544" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#f8fafc">2.33 iter</text>
+<text x="64" y="608" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="22" font-weight="700" fill="#f8fafc">Prompt burst</text>
+<text x="105" y="642" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="400" fill="#cbd5e1">chunk 8</text>
+<rect x="370" y="624" width="310" height="24" rx="5" fill="#38bdf8"/>
+<text x="692" y="642" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#f8fafc">1.00 iter</text>
+<text x="105" y="676" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="400" fill="#cbd5e1">chunk 16</text>
+<rect x="370" y="658" width="310" height="24" rx="5" fill="#34d399"/>
+<text x="692" y="676" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#f8fafc">1.00 iter</text>
+<text x="105" y="710" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="400" fill="#cbd5e1">chunk 32</text>
+<rect x="370" y="692" width="310" height="24" rx="5" fill="#fbbf24"/>
+<text x="692" y="710" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#f8fafc">1.00 iter</text>
+<text x="105" y="744" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="400" fill="#cbd5e1">chunk 64</text>
+<rect x="370" y="726" width="310" height="24" rx="5" fill="#e879f9"/>
+<text x="692" y="744" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#f8fafc">1.00 iter</text>
+<text x="64" y="825" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="400" fill="#94a3b8">Host simulation only. Scheduler iterations are not milliseconds or GPU ITL.</text></svg>
