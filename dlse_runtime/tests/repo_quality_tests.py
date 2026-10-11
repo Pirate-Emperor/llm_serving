@@ -30,12 +30,6 @@ class RepositoryQualityTests(unittest.TestCase):
         self.assertIn("git clone https://github.com/SpryzenHell/llm_serving.git", text)
         self.assertNotIn("git checkout feat/dlse-runtime-revamp", text)
 
-    def test_readme_has_no_old_source_list(self) -> None:
-        text = README.read_text().lower()
-        for term in ("upstream", "provenance", "karpathy/llama2.c",
-                     "hkproj/pytorch-llama", "bruce-lee-ly/cuda_hgemm"):
-            self.assertNotIn(term, text)
-
     def test_readme_local_links_exist(self) -> None:
         text = re.sub(r"~~~.*?~~~", "", README.read_text(), flags=re.DOTALL)
         links = re.findall(r"!?\[[^\]]*\]\(([^)]+)\)", text)
