@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1440" height="930" viewBox="0 0 1440 930"><rect width="100%" height="100%" rx="24" fill="#0b1220"/><text x="64" y="64" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="32" font-weight="700" fill="#f8fafc">KV-cache experiment: reserved-capacity reduction</text>
 <text x="64" y="105" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="20" font-weight="400" fill="#b6c2d2">16 measured allocator cases across four page sizes</text>
-<text x="64" y="145" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="18" font-weight="400" fill="#b6c2d2">Paced reservation versus batch × max sequence length; not total VRAM.</text>
+<text x="64" y="145" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="18" font-weight="400" fill="#b6c2d2">Paged reservation versus batch × max sequence length; not total VRAM.</text>
 <line x1="405" y1="175" x2="405" y2="865" stroke="#334155"/>
 <text x="405" y="166" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#94a3b8">0%</text>
 <line x1="582" y1="175" x2="582" y2="865" stroke="#334155"/>
