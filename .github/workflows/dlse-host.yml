@@ -54,11 +54,7 @@ jobs:
             | tee build/experiments.log
 
       - name: Analyze results and create charts
-        run: >-
-          python3 dlse_runtime/scripts/analyze_experiments.py
-          build/experiment-results
-          --benchmark-log build/host_benchmark.txt
-          --ctest-log build/ctest.txt
+        run: python3 dlse_runtime/scripts/analyze_experiments.py build/experiment-results
 
       - name: CUDA command generation
         run: |
@@ -97,4 +93,3 @@ jobs:
             docs/assets/scheduler_sweep.svg
             docs/assets/scheduler_iterations.svg
             docs/assets/kv_sweep.svg
-            docs/assets/execution_snapshot.svg

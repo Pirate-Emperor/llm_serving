@@ -42,9 +42,9 @@ class RepositoryQualityTests(unittest.TestCase):
     def test_figures_parse_and_have_readable_labels(self) -> None:
         assets = ROOT / "docs" / "assets"
         expected = {
-            "architecture.svg", "disaggregated_flow.svg", "host_validation.svg",
+            "architecture.svg", "disaggregated_flow.svg",
             "scheduler_trace.svg", "kv_reservation.svg", "test_matrix.svg", "scheduler_iterations.svg",
-            "scheduler_sweep.svg", "kv_sweep.svg", "execution_snapshot.svg",
+            "scheduler_sweep.svg", "kv_sweep.svg",
         }
         self.assertTrue(expected.issubset({p.name for p in assets.glob("*.svg")}))
         for path in assets.glob("*.svg"):
@@ -78,13 +78,6 @@ class RepositoryQualityTests(unittest.TestCase):
                     for node in texts if "font-size" in node.attrib
                 ]
                 self.assertGreaterEqual(min(sizes), 18.0, "scheduler iteration labels should be legible")
-
-    def test_terminal_figures_use_shell_style_without_window_dots(self) -> None:
-        for name in ("host_validation.svg", "execution_snapshot.svg"):
-            source = (ROOT / "docs" / "assets" / name).read_text()
-            self.assertIn("runner@ubuntu:~/llm_serving", source)
-            self.assertIn("DejaVu Sans Mono", source)
-            self.assertNotIn("<circle", source, f"{name} should not mimic macOS window controls")
 
     def test_required_runtime_files_exist(self) -> None:
         required = [

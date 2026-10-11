@@ -35,7 +35,7 @@ The C++ scheduler and allocator are host-side reference components. They do not 
 | dlse_runtime/configs/ | Aggregated and disaggregated settings |
 | dlse_runtime/scripts/ | Build, server, metric and benchmark helpers |
 | dlse_runtime/docs/ | Design, deployment and measurement notes |
-| docs/assets/ | Architecture, terminal and experiment figures |
+| docs/assets/ | Architecture and experiment figures |
 
 ## Requirements
 
@@ -116,7 +116,6 @@ The recorded host reference output is:
 
 This is a deterministic host simulation. The decode-gap value is not GPU inter-token latency, and the KV result is not a measurement of total process VRAM.
 
-![Bash-style summary of recorded host validation](docs/assets/host_validation.svg)
 
 ## Parameter experiments and data analysis
 
@@ -144,7 +143,6 @@ The KV-cache sweep tests page sizes 8, 16, 32 and 64 over short, mixed, ragged a
 
 ![KV-cache allocation experiment](docs/assets/kv_sweep.svg)
 
-![Bash-style host experiment summary](docs/assets/execution_snapshot.svg)
 
 The detailed host results, including the parameter tables and findings, are in [Host experiment summary](dlse_runtime/docs/host_experiment_summary.md).
 

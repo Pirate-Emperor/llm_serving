@@ -35,15 +35,6 @@ def svg_text(x: float, y: float, text: str, size: int = 18,
 
 
 
-def svg_mono_text(x: float, y: float, text: str, size: int = 21,
-                  fill: str = "#e2e8f0", weight: str = "400",
-                  anchor: str = "start") -> str:
-    safe = (text.replace("&", "&amp;").replace("<", "&lt;")
-            .replace(">", "&gt;").replace('"', "&quot;"))
-    return (f'<text x="{x:.1f}" y="{y:.1f}" text-anchor="{anchor}" '
-            f'font-family="DejaVu Sans Mono, Consolas, monospace" font-size="{size}" '
-            f'font-weight="{weight}" fill="{fill}">{safe}</text>')
-
 
 def write_svg(path: Path, width: int, height: int, parts: list[str]) -> None:
     body = "\n".join(parts)
@@ -222,69 +213,11 @@ def kv_chart(rows: list[dict[str, str]], path: Path) -> None:
 
 
 
-def terminal_chart(scheduler_count: int, kv_count: int,
-                   benchmark_log: Path | None, ctest_log: Path | None,
-                   path: Path) -> None:
-    values = {
-        "max_decode_gap_iterations": "not supplied",
-        "long_prompt_prefilled": "not supplied",
-        "kv_logical_tokens": "not supplied",
-        "kv_reserved_tokens": "not supplied",
-        "kv_capacity_reclaim": "not supplied",
-    }
-    if benchmark_log and benchmark_log.is_file():
-        for line in benchmark_log.read_text(encoding="utf-8", errors="replace").splitlines():
-            if "=" in line:
-                key, value = line.strip().split("=", 1)
-                if key in values:
-                    values[key] = value
-    suite_text = "not supplied"
-    if ctest_log and ctest_log.is_file():
-        raw = ctest_log.read_text(encoding="utf-8", errors="replace")
-        if "100% tests passed" in raw:
-            suite_text = "all CTest suites passed"
-        else:
-            suite_text = "CTest log captured; inspect the raw log"
-
-    width, height = 1600, 820
-    parts = [
-        '<rect x="24" y="24" width="1552" height="772" rx="8" fill="#0b1220" stroke="#334155" stroke-width="2"/>',
-        '<rect x="24" y="24" width="1552" height="62" fill="#172333"/>',
-        svg_mono_text(62, 63, "runner@ubuntu:~/llm_serving", 21, "#7dd3fc", "700"),
-        svg_mono_text(1538, 63, "HOST EXPERIMENT SUMMARY", 18, "#cbd5e1", "700", "end"),
-        svg_mono_text(66, 130, "$ ctest --test-dir build --output-on-failure", 21, "#93c5fd", "700"),
-        svg_mono_text(66, 168, "CTest status: " + suite_text, 21, "#86efac", "700"),
-        svg_mono_text(66, 220, "$ ./build/bin/dlse_runtime_experiments build/experiment-results", 21, "#93c5fd", "700"),
-        svg_mono_text(100, 258, f"scheduler_rows_checked={scheduler_count}", 21, "#e2e8f0"),
-        svg_mono_text(100, 293, f"kv_rows_checked={kv_count}", 21, "#e2e8f0"),
-        svg_mono_text(100, 328, "analysis_status=PASS", 21, "#86efac", "700"),
-        svg_mono_text(66, 382, "$ ./build/bin/dlse_runtime_bench", 21, "#93c5fd", "700"),
-    ]
-    labels = [
-        ("max_decode_gap_iterations", "max_decode_gap_iterations"),
-        ("long_prompt_prefilled", "long_prompt_prefilled"),
-        ("kv_logical_tokens", "kv_logical_tokens"),
-        ("kv_reserved_tokens", "kv_reserved_tokens"),
-        ("kv_capacity_reclaim", "kv_capacity_reclaim"),
-    ]
-    for i, (key, label) in enumerate(labels):
-        y = 420 + i * 34
-        parts.append(svg_mono_text(100, y, f"{label}={values[key]}", 20, "#e2e8f0"))
-    parts.extend([
-        '<line x1="66" y1="620" x2="1534" y2="620" stroke="#334155" stroke-width="1"/>',
-        svg_mono_text(66, 665, "scope=host_simulation", 19, "#cbd5e1", "700"),
-        svg_mono_text(66, 705, "Decode gap is measured in scheduler iterations, not latency.", 18, "#94a3b8"),
-        svg_mono_text(66, 740, "KV reservation reduction is not a measurement of total process VRAM.", 18, "#94a3b8"),
-    ])
-    write_svg(path, width, height, parts)
-
 
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("results_dir", type=Path, nargs="?",
                         default=Path("dlse_runtime/results/experiments"))
-    parser.add_argument("--benchmark-log", type=Path)
-    parser.add_argument("--ctest-log", type=Path)
     args = parser.parse_args()
 
     try:
@@ -328,8 +261,6 @@ def main() -> int:
         scheduler_chart(scheduler_rows, ASSETS / "scheduler_sweep.svg")
         scheduler_iteration_chart(scheduler_rows, ASSETS / "scheduler_iterations.svg")
         kv_chart(kv_rows, ASSETS / "kv_sweep.svg")
-        terminal_chart(len(scheduler_rows), len(kv_rows), args.benchmark_log,
-                       args.ctest_log, ASSETS / "execution_snapshot.svg")
 
         report = [
             "# Host experiment summary",
@@ -393,7 +324,6 @@ def main() -> int:
         print(f"kv_rows_checked={len(kv_rows)}")
         print(f"scheduler_chart={ASSETS / 'scheduler_sweep.svg'}")
         print(f"kv_chart={ASSETS / 'kv_sweep.svg'}")
-        print(f"execution_snapshot={ASSETS / 'execution_snapshot.svg'}")
         print(f"analysis_report={args.results_dir / 'analysis_summary.md'}")
         print("analysis_status=PASS")
         return 0
