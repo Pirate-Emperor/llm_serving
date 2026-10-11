@@ -341,9 +341,6 @@ def main() -> int:
         ])
         report_text = "\n".join(report) + "\n"
         (args.results_dir / "analysis_summary.md").write_text(report_text, encoding="utf-8")
-        (ROOT / "dlse_runtime" / "docs" / "host_experiment_summary.md").write_text(
-            report_text, encoding="utf-8"
-        )
         print(f"scheduler_rows_checked={len(scheduler_rows)}")
         print(f"kv_rows_checked={len(kv_rows)}")
         print(f"scheduler_chart={ASSETS / 'scheduler_sweep.svg'}")
