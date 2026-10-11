@@ -84,6 +84,70 @@ def scheduler_chart(rows: list[dict[str, str]], path: Path) -> None:
     write_svg(path, width, height, parts)
 
 
+def scheduler_iteration_chart(rows: list[dict[str, str]], path: Path) -> None:
+    workloads = ["decode_heavy", "mixed_long_prompt", "prompt_burst"]
+    labels = {
+        "decode_heavy": "Decode-heavy",
+        "mixed_long_prompt": "Mixed long prompts",
+        "prompt_burst": "Prompt burst",
+    }
+    chunks = [8, 16, 32, 64]
+    colors = ["#38bdf8", "#34d399", "#fbbf24"]
+    means: dict[tuple[str, int], float] = {}
+    for workload in workloads:
+        for chunk in chunks:
+            values = [
+                int(row["iterations"]) for row in rows
+                if row["workload"] == workload
+                and int(row["prefill_chunk"]) == chunk
+            ]
+            if not values:
+                raise ValueError(f"no scheduler iteration values for {workload}, chunk {chunk}")
+            means[(workload, chunk)] = sum(values) / len(values)
+
+    max_iterations = max(means.values())
+    scale_max = max(100, math.ceil(max_iterations / 100.0) * 100)
+    width, height = 1440, 790
+    left, right, top, bottom = 245, 1310, 190, 620
+    usable_x, usable_y = right - left, bottom - top
+    x_for = lambda chunk: left + usable_x * chunks.index(chunk) / (len(chunks) - 1)
+    parts = [
+        svg_text(64, 64, "Scheduler work: iterations to finish each workload", 32, "#f8fafc", "700"),
+        svg_text(64, 105, "Mean scheduler iterations across batch and token-budget settings", 20, "#b6c2d2"),
+        svg_text(64, 145, "Larger chunks reduce simulation iterations for prompt-heavy mixes, not wall-clock time.", 18, "#b6c2d2"),
+    ]
+
+    for tick in range(0, scale_max + 1, 100):
+        y = bottom - usable_y * tick / scale_max
+        parts.append(f'<line x1="{left}" y1="{y:.1f}" x2="{right}" y2="{y:.1f}" stroke="#334155"/>')
+        parts.append(svg_text(left - 18, y + 6, str(tick), 16, "#94a3b8", anchor="end"))
+
+    for chunk in chunks:
+        parts.append(svg_text(x_for(chunk), bottom + 38, f"Chunk {chunk}", 18, "#cbd5e1", anchor="middle"))
+
+    for index, workload in enumerate(workloads):
+        values = [means[(workload, chunk)] for chunk in chunks]
+        points = " ".join(
+            f"{x_for(chunk):.1f},{bottom - usable_y * value / scale_max:.1f}"
+            for chunk, value in zip(chunks, values)
+        )
+        parts.append(
+            f'<polyline points="{points}" fill="none" stroke="{colors[index]}" '
+            'stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>'
+        )
+        for chunk, value in zip(chunks, values):
+            x = x_for(chunk)
+            y = bottom - usable_y * value / scale_max
+            parts.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="7" fill="{colors[index]}" stroke="#0b1220" stroke-width="2"/>')
+            parts.append(svg_text(x, y - 14, str(round(value)), 16, colors[index], "700", "middle"))
+        legend_x = 310 + index * 350
+        parts.append(f'<line x1="{legend_x}" y1="700" x2="{legend_x + 40}" y2="700" stroke="{colors[index]}" stroke-width="5"/>')
+        parts.append(svg_text(legend_x + 52, 706, labels[workload], 18, "#e2e8f0"))
+
+    parts.append(svg_text(64, 755, "Iteration count is a scheduler workload measure, not latency or throughput.", 17, "#94a3b8"))
+    write_svg(path, width, height, parts)
+
+
 def kv_chart(rows: list[dict[str, str]], path: Path) -> None:
     grouped: dict[tuple[str, int], list[float]] = defaultdict(list)
     for row in rows:
@@ -214,6 +278,7 @@ def main() -> int:
 
         ASSETS.mkdir(parents=True, exist_ok=True)
         scheduler_chart(scheduler_rows, ASSETS / "scheduler_sweep.svg")
+        scheduler_iteration_chart(scheduler_rows, ASSETS / "scheduler_iterations.svg")
         kv_chart(kv_rows, ASSETS / "kv_sweep.svg")
         terminal_chart(len(scheduler_rows), len(kv_rows), args.benchmark_log,
                        args.ctest_log, ASSETS / "execution_snapshot.svg")
