@@ -164,7 +164,19 @@ cmake --build build-cuda --parallel
 ./build-cuda/bin/dlse_cuda_graph_bench 10000
 ~~~
 
-Or run make dlse-cuda.
+For the Makefile target, the CUDA architecture can be selected with CUDA_ARCH. For example, use the default 86 setting on an RTX 3090, or use 80 on an A100:
+
+~~~bash
+make dlse-cuda
+CUDA_ARCH=80 make dlse-cuda
+~~~
+
+The same override works with the validation script and container entry points:
+
+~~~bash
+CUDA_ARCH=80 ./dlse_runtime/scripts/run_cuda_validation.sh
+CUDA_ARCH=80 ./dlse_runtime/scripts/enter_trtllm_dev_container.sh
+~~~
 
 The paged-attention benchmark creates matching contiguous and paged key/value data, compares output values, and reports CUDA-event timings. The CUDA Graph benchmark uses device-resident state and a counter, compares repeated ordinary launches with graph replay, and reports host submission time per step.
 

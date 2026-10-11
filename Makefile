@@ -1,5 +1,7 @@
 .PHONY: test dlse-test dlse-bench dlse-experiment dlse-cuda clean
 
+CUDA_ARCH ?= 86
+
 test: dlse-test
 
 dlse-test:
@@ -16,7 +18,7 @@ dlse-experiment: dlse-test
 dlse-cuda:
 	cmake -S . -B build-cuda \
 		-DDLSE_ENABLE_CUDA=ON \
-		-DCMAKE_CUDA_ARCHITECTURES=86
+		-DCMAKE_CUDA_ARCHITECTURES=$(CUDA_ARCH)
 	cmake --build build-cuda --parallel
 	./build-cuda/bin/dlse_paged_attention_bench
 	./build-cuda/bin/dlse_cuda_graph_bench 10000

@@ -60,6 +60,13 @@ jobs:
           --benchmark-log build/host_benchmark.txt
           --ctest-log build/ctest.txt
 
+      - name: CUDA command generation
+        run: |
+          make -n dlse-cuda > build/cuda-default.txt
+          make -n CUDA_ARCH=80 dlse-cuda > build/cuda-a100.txt
+          grep -Fq -- "-DCMAKE_CUDA_ARCHITECTURES=86" build/cuda-default.txt
+          grep -Fq -- "-DCMAKE_CUDA_ARCHITECTURES=80" build/cuda-a100.txt
+
       - name: Shell syntax
         run: |
           set -euo pipefail
@@ -82,6 +89,8 @@ jobs:
             build/ctest.txt
             build/test_cases.txt
             build/host_benchmark.txt
+            build/cuda-default.txt
+            build/cuda-a100.txt
             build/experiments.log
             build/experiment-results/*.csv
             build/experiment-results/analysis_summary.md

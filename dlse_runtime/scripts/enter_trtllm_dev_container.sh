@@ -7,4 +7,4 @@ IMAGE="nvcr.io/nvidia/tensorrt-llm/devel:1.3.0rc29"
 mkdir -p "$HOME/.cache"
 docker pull "$IMAGE"
 
-exec docker run --rm -it     --ipc=host     --ulimit memlock=-1     --ulimit stack=67108864     --gpus=all     --volume "$ROOT:/workspace/llm_serving"     --volume "$HOME/.cache:/root/.cache:rw"     --workdir /workspace/llm_serving     "$IMAGE"     /bin/bash
+exec docker run --rm -it     --ipc=host     --ulimit memlock=-1     --ulimit stack=67108864     --gpus=all     --env "CUDA_ARCH=${CUDA_ARCH:-86}"     --volume "$ROOT:/workspace/llm_serving"     --volume "$HOME/.cache:/root/.cache:rw"     --workdir /workspace/llm_serving     "$IMAGE"     /bin/bash
