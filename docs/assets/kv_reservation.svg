@@ -1,10 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="560" viewBox="0 0 1000 560">
-<line x1="120" y1="470" x2="880" y2="470" stroke="black"/>
-<line x1="120" y1="90" x2="120" y2="470" stroke="black"/>
-<rect x="250" y="118" width="180" height="352" fill="none" stroke="black" stroke-width="2"/>
-<rect x="570" y="431" width="180" height="39" fill="none" stroke="black" stroke-width="2"/>
-<text x="340" y="505" text-anchor="middle" font-family="sans-serif" font-size="16">Contiguous</text>
-<text x="660" y="505" text-anchor="middle" font-family="sans-serif" font-size="16">Paged</text>
-<text x="500" y="55" text-anchor="middle" font-family="sans-serif" font-size="23">KV-cache reservation from executed host benchmark</text>
-<text x="500" y="535" text-anchor="middle" font-family="sans-serif" font-size="15">Contiguous: 128.00 MiB | Paged: 13.25 MiB | reservation reduction: 89.6484%</text>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="660" viewBox="0 0 1440 660">
+<rect width="1440" height="660" rx="26" fill="#0b1220"/><text x="64" y="70" font-family="DejaVu Sans, sans-serif" font-size="34" font-weight="700" fill="#f8fafc">KV reservation for the host workload</text><text x="64" y="112" font-family="DejaVu Sans, sans-serif" font-size="20" fill="#b6c2d2">Eight sequences · max sequence length 4096 · example footprint 4096 bytes/token</text>
+<text x="90" y="196" font-family="DejaVu Sans, sans-serif" font-size="22" font-weight="700" fill="#e2e8f0">Contiguous reservation</text><rect x="90" y="220" width="1080" height="64" rx="10" fill="#24334a"/><rect x="90" y="220" width="1080" height="64" rx="10" fill="#38bdf8"/><text x="1190" y="261" font-family="DejaVu Sans, sans-serif" font-size="22" font-weight="700" fill="#bae6fd">128 MiB</text>
+<text x="90" y="342" font-family="DejaVu Sans, sans-serif" font-size="22" font-weight="700" fill="#e2e8f0">Paged reservation</text><rect x="90" y="366" width="1080" height="64" rx="10" fill="#24334a"/><rect x="90" y="366" width="111.8" height="64" rx="10" fill="#34d399"/><text x="230" y="407" font-family="DejaVu Sans, sans-serif" font-size="22" font-weight="700" fill="#a7f3d0">13.25 MiB</text>
+<rect x="90" y="470" width="1260" height="100" rx="14" fill="#16312f" stroke="#34d399" stroke-width="2"/><text x="120" y="510" font-family="DejaVu Sans, sans-serif" font-size="25" font-weight="700" fill="#d1fae5">89.6484% less reserved KV capacity</text><text x="120" y="545" font-family="DejaVu Sans, sans-serif" font-size="19" fill="#a7f3d0">Controlled allocator workload only; this is not a total process VRAM result.</text>
+<text x="64" y="620" font-family="DejaVu Sans, sans-serif" font-size="17" fill="#94a3b8">Lengths: 128, 256, 512, 768, 1024, 128, 64, 512 tokens.</text></svg>

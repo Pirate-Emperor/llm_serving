@@ -29,6 +29,10 @@ RequestId ContinuousBatchScheduler::submit(
             "max_new_tokens must be positive");
     }
 
+    if (next_id_ == 0 || entries_.contains(next_id_)) {
+        throw std::overflow_error("request id space exhausted");
+    }
+
     const RequestId id = next_id_++;
     Entry entry;
     entry.request.id = id;
@@ -211,10 +215,28 @@ ContinuousBatchScheduler::get(RequestId id) const {
 
 SchedulerSnapshot
 ContinuousBatchScheduler::snapshot() const {
+    std::size_t waiting = 0;
+    std::size_t active = 0;
+
+    for (const auto& [id, entry] : entries_) {
+        (void)id;
+
+        if (entry.request.finished) {
+            continue;
+        }
+
+        if (entry.active) {
+            ++active;
+        } else if (entry.request.prefill_cursor <
+                   entry.request.prompt_tokens) {
+            ++waiting;
+        }
+    }
+
     return {
         iteration_,
-        waiting_prefill_.size(),
-        active_decode_.size(),
+        waiting,
+        active,
         finished_,
         entries_.size()
     };
@@ -236,6 +258,22 @@ PagedKVCache::PagedKVCache(
             "max_pages exceeds PhysicalPage range");
     }
 
+    if (config_.max_pages >
+        std::numeric_limits<std::size_t>::max() /
+            config_.page_size_tokens) {
+        throw std::overflow_error("KV token capacity overflow");
+    }
+
+    const std::size_t capacity_tokens =
+        config_.max_pages * config_.page_size_tokens;
+
+    if (config_.bytes_per_token != 0 &&
+        capacity_tokens >
+            std::numeric_limits<std::size_t>::max() /
+                config_.bytes_per_token) {
+        throw std::overflow_error("KV byte capacity overflow");
+    }
+
     free_pages_.reserve(
         config_.max_pages);
 
@@ -254,10 +292,7 @@ std::size_t PagedKVCache::pages_for_tokens(
         return 0;
     }
 
-    return (
-        tokens +
-        config_.page_size_tokens - 1
-    ) / config_.page_size_tokens;
+    return 1 + (tokens - 1) / config_.page_size_tokens;
 }
 
 void PagedKVCache::create(
@@ -298,6 +333,21 @@ void PagedKVCache::append(
 
     const std::size_t required_pages =
         pages_for_tokens(target);
+
+    if (required_pages < sequence.pages.size()) {
+        throw std::logic_error("KV page count moved backwards");
+    }
+
+    const std::size_t missing_pages =
+        required_pages - sequence.pages.size();
+
+    if (missing_pages > free_pages_.size()) {
+        throw std::runtime_error("KV page pool exhausted");
+    }
+
+    // Reserve before altering the free-page pool, so allocation failure
+    // cannot leave the cache with partially changed page ownership.
+    sequence.pages.reserve(required_pages);
 
     while (sequence.pages.size() <
            required_pages) {

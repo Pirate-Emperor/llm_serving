@@ -1,4 +1,4 @@
-.PHONY: test dlse-test dlse-bench dlse-cuda clean
+.PHONY: test dlse-test dlse-bench dlse-experiment dlse-cuda clean
 
 test: dlse-test
 
@@ -9,6 +9,9 @@ dlse-test:
 
 dlse-bench: dlse-test
 	./build/bin/dlse_runtime_bench
+
+dlse-experiment: dlse-test
+	./build/bin/dlse_runtime_experiments dlse_runtime/results/experiments
 
 dlse-cuda:
 	cmake -S . -B build-cuda \

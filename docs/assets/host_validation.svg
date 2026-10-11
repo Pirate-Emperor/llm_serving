@@ -1,18 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="560" viewBox="0 0 1000 560">
-<rect x="45" y="45" width="910" height="455" fill="none" stroke="black" stroke-width="2"/>
-<text x="75" y="85" font-family="monospace" font-size="21">DLSE host validation</text>
-<g font-family="monospace" font-size="18">
-<text x="75" y="125">$ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release</text>
-<text x="75" y="155">$ cmake --build build --parallel</text>
-<text x="75" y="185">[100%] Built target dlse_runtime_bench</text>
-<text x="75" y="225">$ ctest --test-dir build --output-on-failure</text>
-<text x="75" y="255">1/1 Test #1: dlse_runtime_tests ............... Passed</text>
-<text x="75" y="285">100% tests passed, 0 tests failed out of 1</text>
-<text x="75" y="325">$ ./build/bin/dlse_runtime_bench</text>
-<text x="75" y="355">max_decode_gap_iterations=1</text>
-<text x="75" y="385">long_prompt_prefilled=4096</text>
-<text x="75" y="415">kv_logical_tokens=3392</text>
-<text x="75" y="445">kv_reserved_tokens=3392</text>
-<text x="75" y="475">kv_capacity_reclaim=0.896484</text>
-</g>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="800" viewBox="0 0 1440 800">
+<rect width="1440" height="800" rx="26" fill="#0a101c"/><rect x="36" y="34" width="1368" height="730" rx="18" fill="#111827" stroke="#475569" stroke-width="2"/><path d="M54 34H1386Q1404 34 1404 52V98H36V52Q36 34 54 34Z" fill="#263449"/>
+<circle cx="72" cy="66" r="9" fill="#fb7185"/><circle cx="104" cy="66" r="9" fill="#fbbf24"/><circle cx="136" cy="66" r="9" fill="#34d399"/><text x="720" y="73" text-anchor="middle" font-family="DejaVu Sans Mono, monospace" font-size="21" fill="#e2e8f0">Recorded host validation output</text>
+<g font-family="DejaVu Sans Mono, monospace" font-size="22" fill="#d1fae5"><text x="76" y="150">$ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release</text><text x="76" y="190">$ cmake --build build --parallel</text><text x="76" y="230">[100%] Built target dlse_runtime_tests</text><text x="76" y="270">[100%] Built target dlse_runtime_bench</text></g>
+<rect x="72" y="300" width="1296" height="164" rx="10" fill="#102b29" stroke="#34d399" stroke-width="2"/><g font-family="DejaVu Sans Mono, monospace" font-size="22" fill="#d1fae5"><text x="100" y="342">$ ctest --test-dir build --output-on-failure</text><text x="100" y="380">1/1 test passed in the earlier baseline suite</text><text x="100" y="418">Expanded scheduler, KV and stress tests now run in CI</text><text x="100" y="456">Debug, Release and ASan/UBSan validation</text></g>
+<g font-family="DejaVu Sans Mono, monospace" font-size="21" fill="#bfdbfe"><text x="76" y="525">$ ./build/bin/dlse_runtime_bench</text><text x="110" y="565">max_decode_gap_iterations=1</text><text x="110" y="602">long_prompt_prefilled=4096</text><text x="110" y="639">kv_logical_tokens=3392</text><text x="110" y="676">kv_reserved_tokens=3392</text><text x="110" y="713">kv_capacity_reclaim=0.896484</text></g><text x="76" y="747" font-family="DejaVu Sans, sans-serif" font-size="17" fill="#94a3b8">Host simulation only. This is not a GPU latency or total-VRAM measurement.</text></svg>

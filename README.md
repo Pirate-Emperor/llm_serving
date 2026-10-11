@@ -1,641 +1,296 @@
 # Disaggregated LLM Serving Engine
 
-<p align="center">
-  <img src="main.png" alt="Disaggregated LLM Serving Engine overview" width="760">
-</p>
+Maintainer: **Pirate-Emperor**
 
-A C++/CUDA LLM serving project covering continuous batching, chunked prefill,
-paged KV-cache management, CUDA Graph decode replay, and disaggregated
-context/generation serving with TensorRT-LLM.
+A serving-engine study built around a C++20 scheduling core, paged KV-cache accounting, CUDA experiments, and TensorRT-LLM serving examples. The host-side scheduler and allocator can be built and tested without a GPU. CUDA and TensorRT-LLM tests need a compatible NVIDIA system.
 
-The repository contains two parts:
+Host measurements are shown separately from GPU measurements. GPU performance claims are not described as measured until the exact workload has been run on the target hardware.
 
-1. The original source snapshot assembled from the three upstream repositories
-   specified for this project.
-2. A clean implementation in `dlse_runtime/` that contains the serving runtime,
-   benchmarks, tests, TensorRT-LLM integration and deployment scripts.
+## Design
 
-The three upstream repositories are:
+![Runtime architecture](docs/assets/architecture.svg)
 
-| Component | Repository |
-|---|---|
-| LLaMA C inference reference | [karpathy/llama2.c](https://github.com/karpathy/llama2.c) |
-| PyTorch LLaMA reference | [hkproj/pytorch-llama](https://github.com/hkproj/pytorch-llama) |
-| CUDA HGEMM / WMMA / MMA reference | [Bruce-Lee-LY/cuda_hgemm](https://github.com/Bruce-Lee-LY/cuda_hgemm) |
+The project has four main parts:
 
-Exact inspected revisions are recorded in
-[`dlse_runtime/third_party/SOURCES.md`](dlse_runtime/third_party/SOURCES.md).
+- **Continuous batching:** keeps prefill work in bounded chunks and schedules active decode requests first.
+- **Paged KV cache:** maps each sequence to physical pages and reports reserved capacity, logical use, bytes, and internal fragmentation.
+- **CUDA experiments:** compares contiguous and paged attention output and measures ordinary launch submission against CUDA Graph replay.
+- **TensorRT-LLM examples:** provides aggregated and separate context/generation server configurations, smoke tests, and load tests.
 
----
+The C++ scheduler and allocator are host-side reference components. They do not replace the scheduler or device-memory allocator inside TensorRT-LLM. The CUDA attention kernel is a correctness-first example, not a claim of production-level attention speed.
 
-## 1. What the project implements
-
-### Continuous batching and chunked prefill
-
-The C++ scheduler keeps waiting prefill work and active decode work in separate
-queues.
-
-For every iteration it:
-
-1. services active decode requests;
-2. gives the remaining token budget to prompt prefill;
-3. limits prompt work to a configured chunk size;
-4. rotates incomplete prefills back into the waiting queue;
-5. moves a request into decode as soon as its prompt is complete.
-
-The main implementation is:
-
-- `dlse_runtime/include/dlse/runtime.h`
-- `dlse_runtime/src/runtime.cpp`
-- `dlse_runtime/benchmarks/runtime_bench.cpp`
-
-### Paged KV cache
-
-`PagedKVCache` stores logical sequence length separately from physical page
-locations. A request receives a new physical page only when its token count
-crosses a page boundary.
-
-The allocator reports:
-
-- logical tokens;
-- reserved token capacity;
-- used/free pages;
-- reserved KV bytes;
-- internal fragmentation.
-
-The CUDA path accepts the page table directly and compares it with a
-contiguous-KV reference implementation.
-
-### CUDA Graph decode path
-
-`dlse_runtime/benchmarks/cuda_graph_bench.cu` contains a stateful one-dimensional
-decode step.
-
-The step counter and state remain on the GPU so the replay represents a real
-autoregressive dependency. The benchmark compares ordinary host kernel
-submissions with CUDA Graph replay.
-
-### Disaggregated serving
-
-TensorRT-LLM is used for the production-oriented context/generation serving
-path.
-
-The intended topology is:
-
-```
-Client
-  |
-  v
-Disaggregated router :8000
-  |                     |
-  v                     v
-Context / Prefill   Generation / Decode
-GPU 0 :8001         GPU 1 :8002
-  |                     ^
-  +---- KV transfer ----+
-```
-
-The worker configuration uses the NIXL cache-transfer backend.
-
----
-
-## 2. Repository layout
+## Repository layout
 
 | Path | Purpose |
-|---|---|
-| `dlse_runtime/include/dlse/runtime.h` | Scheduler and paged KV-cache interfaces |
-| `dlse_runtime/src/runtime.cpp` | Scheduler and page allocator implementation |
-| `dlse_runtime/cuda/paged_attention.cu` | Contiguous and paged CUDA attention kernels |
-| `dlse_runtime/benchmarks/runtime_bench.cpp` | Host scheduler/KV benchmark |
-| `dlse_runtime/benchmarks/paged_attention_bench.cu` | CUDA correctness and A/B timing benchmark |
-| `dlse_runtime/benchmarks/cuda_graph_bench.cu` | CUDA Graph launch benchmark |
-| `dlse_runtime/benchmarks/trtllm_benchmark.py` | Concurrent TensorRT-LLM throughput/ITL benchmark |
-| `dlse_runtime/python/dlse_trtllm.py` | TensorRT-LLM Python adapter |
-| `dlse_runtime/configs/` | Aggregated and disaggregated serving configs |
-| `dlse_runtime/scripts/` | Build, serve, benchmark and smoke-test commands |
-| `dlse_runtime/tests/` | C++ unit tests |
-| `docs/assets/` | Repository figures and validation evidence |
-| `dlse_runtime/docs/` | Design and benchmark documentation |
+| --- | --- |
+| dlse_runtime/include/dlse/runtime.h | Scheduler and KV-cache interfaces |
+| dlse_runtime/src/runtime.cpp | Scheduling rules and page allocator |
+| dlse_runtime/tests/runtime_tests.cpp | Unit, boundary, error and randomized tests |
+| dlse_runtime/benchmarks/runtime_bench.cpp | Reproducible host benchmark |
+| dlse_runtime/benchmarks/runtime_experiments.cpp | Parameter sweeps and KV-cache study |
+| dlse_runtime/cuda/paged_attention.cu | Contiguous and paged CUDA decode kernels |
+| dlse_runtime/benchmarks/paged_attention_bench.cu | CUDA output comparison and timing |
+| dlse_runtime/benchmarks/cuda_graph_bench.cu | CUDA Graph launch-submission experiment |
+| dlse_runtime/python/ | TensorRT-LLM adapter and verification entry point |
+| dlse_runtime/configs/ | Aggregated and disaggregated settings |
+| dlse_runtime/scripts/ | Build, server, metric and benchmark helpers |
+| dlse_runtime/docs/ | Design, deployment and measurement notes |
+| docs/assets/ | Architecture, terminal and experiment figures |
 
----
+## Requirements
 
-## 3. Requirements
+### Host build and tests
 
-### Host-only validation
+- CMake 3.20 or newer
+- A C++20 compiler
+- Bash for helper scripts
+- Python 3 for repository checks and experiment charts
 
-The host control plane does not need an NVIDIA GPU.
+The host workflow runs on Linux and does not require CUDA.
 
-Required:
+### GPU experiments
 
-| Software | Version |
-|---|---|
-| C++ compiler | C++20 capable |
-| CMake | 3.20 or newer |
-| Bash | Required for the helper scripts |
+The CUDA examples additionally require an NVIDIA GPU, a compatible driver and CUDA toolkit with nvcc. Set the CUDA architecture to match your device. The examples below use 86 for an RTX 3090; use 80 for A100.
 
-Linux is the documented environment for the command-line workflow.
+TensorRT-LLM examples require a supported software combination and enough GPU memory for the selected model. The container scripts use the 1.3.0rc29 development or runtime image.
 
-### Native CUDA validation
+## Quick start
 
-Required in addition to the host requirements:
+Clone the default branch:
 
-- NVIDIA GPU;
-- NVIDIA driver;
-- CUDA toolkit with `nvcc`;
-- CUDA architecture matching the target GPU.
-
-The Makefile examples use CUDA architecture 86 because that is appropriate for
-Ampere GPUs such as RTX 3090 and RTX A6000. A100 uses architecture 80. Change
-the value when using another GPU.
-
-### TensorRT-LLM
-
-There are two supported ways to run the TensorRT-LLM path:
-
-1. install TensorRT-LLM in an existing compatible CUDA environment;
-2. use the provided NVIDIA container scripts.
-
-The container route is recommended for a clean, reproducible environment.
-
----
-
-## 4. Fresh clone: host build
-
-Clone the repository and enter it:
-
-```bash
+~~~bash
 git clone https://github.com/SpryzenHell/llm_serving.git
 cd llm_serving
-git checkout feat/dlse-runtime-revamp
-```
+~~~
 
-Build and run the tests:
+Build, run the C++ tests, and run the host benchmark:
 
-```bash
+~~~bash
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --parallel
 ctest --test-dir build --output-on-failure
-```
-
-Run the host benchmark:
-
-```bash
 ./build/bin/dlse_runtime_bench
-```
+~~~
 
-The same workflow is available through:
+The same checks are available through make test and make dlse-bench.
 
-```bash
-make test
-make dlse-bench
-```
+## Tests
 
-The project places executables under `build/bin/` so paths do not depend on
-the CMake subdirectory layout.
+The C++ test executable runs named checks grouped into three CTest suites:
 
----
+| Suite | Coverage |
+| --- | --- |
+| Scheduler | Invalid limits, prefill offsets, chunk limits, round-robin admission, decode priority, output limits, cancellation and live queue counts |
+| KV cache | Page boundaries, unique physical pages, byte accounting, fragmentation, page reuse, unknown IDs, exhaustion and overflow |
+| Stress | Seeded randomized workloads that check scheduling and allocator rules over repeated operations |
 
-## 5. Host validation result
+Test conditions remain active in Release builds. The host CI workflow builds Debug and Release variants and runs a separate AddressSanitizer/UndefinedBehaviorSanitizer build.
 
-The following result was obtained from the committed runtime sources in the
-validation environment:
+![Test coverage and validation stages](docs/assets/test_matrix.svg)
 
-| Check | Result |
-|---|---:|
-| C++ compiler | GCC 14.2.0 |
-| C++ test suite | 1 / 1 passed |
-| Maximum decode gap | 1 scheduler iteration |
+Run one suite directly:
+
+~~~bash
+./build/bin/dlse_runtime_tests scheduler
+./build/bin/dlse_runtime_tests kv
+./build/bin/dlse_runtime_tests stress
+~~~
+
+Run every case in one process with ./build/bin/dlse_runtime_tests all.
+
+## Host benchmark
+
+The standard host benchmark admits eight decode requests, then adds one 4096-token prompt. It also measures page reservation for eight sequence lengths.
+
+The recorded host reference output is:
+
+| Measurement | Result |
+| --- | ---: |
+| Maximum decode gap in the simulation | 1 scheduler iteration |
 | Long prompt scheduled | 4096 tokens |
 | Logical KV tokens | 3392 |
 | Reserved KV tokens | 3392 |
 | Contiguous KV reservation | 128.00 MiB |
 | Paged KV reservation | 13.25 MiB |
-| KV reservation reduction | 89.6484% |
+| Reduction in KV reservation | 89.6484% |
 
-The KV number is a controlled allocation comparison for the benchmark
-workload. It is not a claim that 89.6484% of total process VRAM disappears.
+This is a deterministic host simulation. The decode-gap value is not GPU inter-token latency, and the KV result is not a measurement of total process VRAM.
 
-![Host validation output](docs/assets/host_validation.svg)
+![Terminal output from host validation](docs/assets/host_validation.svg)
 
-Raw output is also stored in
-[`docs/assets/host_validation.txt`](docs/assets/host_validation.txt).
+## Parameter experiments and data analysis
 
----
+Run the parameter sweep:
 
-## 6. Scheduler behavior
+~~~bash
+./build/bin/dlse_runtime_experiments dlse_runtime/results/experiments
+python3 dlse_runtime/scripts/analyze_experiments.py dlse_runtime/results/experiments
+~~~
 
-The benchmark starts eight continuously decoding requests, then admits a
-4096-token prompt.
+The experiment runner validates schedules while sweeping:
 
-With the current configuration:
+- 3 decode batch limits: 4, 8 and 16;
+- 3 token budgets: 32, 64 and 128;
+- 4 prefill chunk sizes: 8, 16, 32 and 64;
+- 3 request mixes: decode-heavy, mixed long prompts, and a prompt burst.
 
-- decode receives 8 tokens per scheduler iteration;
-- prefill receives 32 tokens per iteration while the long prompt is active;
-- the measured decode gap is 1 iteration.
+This gives 36 scheduler settings and 108 workload/settings records. Each record contains iteration count, prompt and decode tokens, maximum and percentile decode-gap measurements in **scheduler iterations**, mean prefill tokens per iteration and the largest prefill chunk. These are simulation measurements, not wall-clock latency.
 
-![Scheduler trace](docs/assets/scheduler_trace.svg)
+The KV-cache sweep tests page sizes 8, 16, 32 and 64 over short, mixed, ragged and long sequences. It records logical tokens, reserved tokens, reserved bytes, equivalent contiguous reservation, reservation reduction and internal fragmentation. Both sweeps write CSV files. The analysis script checks the data and creates charts and a Markdown summary based on those CSV rows.
 
-This benchmark validates the scheduler policy. It does not replace an
-end-to-end ITL measurement on a real model and GPU.
+![Scheduler configuration experiment](docs/assets/scheduler_sweep.svg)
 
----
+![KV-cache allocation experiment](docs/assets/kv_sweep.svg)
 
-## 7. KV-cache allocation
+![Execution snapshot from the validation workflow](docs/assets/execution_snapshot.svg)
 
-The host benchmark uses:
+The generated CSV files should be kept with their environment record when results are used in a report. The host CI workflow also uploads the experiment data, logs, and generated charts as run artifacts.
 
-- page size: 16 tokens;
-- maximum sequence length: 4096;
-- batch size: 8;
-- example KV footprint: 4096 bytes per logical token;
-- sequence lengths: 128, 256, 512, 768, 1024, 128, 64, 512.
+## CUDA build and experiments
 
-For this workload the contiguous baseline reserves the full
-`8 x 4096` token capacity. The paged allocator reserves only the pages needed
-for the actual sequence lengths.
+On a CUDA-enabled host:
 
-![KV reservation comparison](docs/assets/kv_reservation.svg)
-
-The CUDA A/B benchmark additionally checks that paged and contiguous attention
-produce matching outputs within the FP16 error tolerance.
-
----
-
-## 8. CUDA build and benchmarks
-
-On a CUDA-enabled machine:
-
-```bash
+~~~bash
 cmake -S . -B build-cuda \
   -DDLSE_ENABLE_CUDA=ON \
+  -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_CUDA_ARCHITECTURES=86
-
 cmake --build build-cuda --parallel
-
 ./build-cuda/bin/dlse_paged_attention_bench
 ./build-cuda/bin/dlse_cuda_graph_bench 10000
-```
+~~~
 
-Or:
+Or run make dlse-cuda.
 
-```bash
-make dlse-cuda
-```
+The paged-attention benchmark creates matching contiguous and paged key/value data, compares output values, and reports CUDA-event timings. The CUDA Graph benchmark uses device-resident state and a counter, compares repeated ordinary launches with graph replay, and reports host submission time per step.
 
-The paged-attention benchmark reports:
+The CUDA Graph result measures host enqueue overhead. It is not the same as GPU kernel execution time, total request latency or ITL. No CUDA timing figure is presented as measured until it has been run on a target GPU.
 
-- contiguous CUDA-event time;
-- paged CUDA-event time;
-- maximum absolute numerical error.
+## TensorRT-LLM setup
 
-The CUDA Graph benchmark reports:
+The container helpers mount the repository into /workspace/llm_serving and mount the local cache directory.
 
-- baseline host submission time per step;
-- graph replay host submission time per step;
-- host enqueue reduction.
-
-No GPU timing value is included in this README until the benchmark is run on
-the target NVIDIA machine.
-
----
-
-## 9. TensorRT-LLM container workflow
-
-For a clean GPU environment, use the provided container helper:
-
-```bash
+~~~bash
 ./dlse_runtime/scripts/enter_trtllm_dev_container.sh
-```
+~~~
 
-The helper uses:
+For server execution, use:
 
-```
-nvcr.io/nvidia/tensorrt-llm/devel:1.3.0rc29
-```
-
-It mounts the repository at `/workspace/llm_serving` and mounts the user's
-Hugging Face/cache directory.
-
-Inside the container:
-
-```bash
-cmake -S . -B build-cuda \
-  -DDLSE_ENABLE_CUDA=ON \
-  -DCMAKE_CUDA_ARCHITECTURES=86
-
-cmake --build build-cuda --parallel
-
-./build-cuda/bin/dlse_paged_attention_bench
-./build-cuda/bin/dlse_cuda_graph_bench 10000
-```
-
-For server execution, the runtime-container helper is available:
-
-```bash
+~~~bash
 ./dlse_runtime/scripts/enter_trtllm_runtime_container.sh
-```
+~~~
 
-This uses:
+The scripts use these NVIDIA images:
 
-```
-nvcr.io/nvidia/tensorrt-llm/release:1.3.0rc29
-```
+- nvcr.io/nvidia/tensorrt-llm/devel:1.3.0rc29
+- nvcr.io/nvidia/tensorrt-llm/release:1.3.0rc29
 
-NVIDIA documents these container-based TensorRT-LLM workflows in the official
-TensorRT-LLM documentation.
+They require Docker access and a working NVIDIA Container Toolkit on the host. Confirm image availability and model compatibility on the target machine.
 
----
-
-## 10. Run an aggregated TensorRT-LLM server
+## Run a single serving endpoint
 
 Inside a compatible TensorRT-LLM environment:
 
-```bash
+~~~bash
 ./dlse_runtime/scripts/run_trtllm_server.sh \
   TinyLlama/TinyLlama-1.1B-Chat-v1.0
-```
-
-The server listens on:
-
-```
-http://127.0.0.1:8000
-```
+~~~
 
 Check readiness:
 
-```bash
-curl -s -o /dev/null -w "Status: %{http_code}\n" \
-  http://127.0.0.1:8000/health
-```
+~~~bash
+curl -fsS http://127.0.0.1:8000/health
+~~~
 
-Run the repository smoke test:
+Send an OpenAI-compatible request and verify its response:
 
-```bash
+~~~bash
 ./dlse_runtime/scripts/smoke_test.sh \
   TinyLlama/TinyLlama-1.1B-Chat-v1.0
-```
+~~~
 
-The smoke test checks `/health` and sends one OpenAI-compatible
-`/v1/chat/completions` request.
+The smoke test calls /health and sends one /v1/chat/completions request. It fails if the server is not ready or the request fails.
 
-TensorRT-LLM documents the same health and OpenAI-compatible endpoints.
+## Disaggregated context and generation
 
----
+The separate worker scripts use GPU 0 for context/prefill and GPU 1 for generation/decode by default. Both workers need a valid NIXL transfer configuration and access to the same model. The setup expects two visible GPUs.
 
-## 11. Disaggregated TensorRT-LLM server
+Start all three local processes:
 
-The repository provides separate context and generation configurations.
-
-### Context / prefill worker
-
-Uses GPU 0 by default:
-
-```bash
-./dlse_runtime/scripts/run_context_server.sh \
-  TinyLlama/TinyLlama-1.1B-Chat-v1.0
-```
-
-### Generation / decode worker
-
-Uses GPU 1 by default:
-
-```bash
-./dlse_runtime/scripts/run_generation_server.sh \
-  TinyLlama/TinyLlama-1.1B-Chat-v1.0
-```
-
-### Router
-
-Start the disaggregated router:
-
-```bash
-./dlse_runtime/scripts/run_disaggregated_server.sh
-```
-
-The router listens on port 8000 and forwards requests to the context worker on
-8001 and generation worker on 8002.
-
-For a two-GPU local setup, all three processes can be started together:
-
-```bash
+~~~bash
 ./dlse_runtime/scripts/run_local_disaggregated.sh \
   TinyLlama/TinyLlama-1.1B-Chat-v1.0
-```
+~~~
 
-Worker logs are written under:
+The router listens on port 8000, the context worker on 8001, and the generation worker on 8002. Logs are written under logs/disaggregated/.
 
-```
-logs/disaggregated/
-```
+![Context and generation deployment](docs/assets/disaggregated_flow.svg)
 
-The context worker has `disable_overlap_scheduler: true`, and both workers use
-the same NIXL cache-transfer backend.
+See dlse_runtime/docs/disaggregated_deployment.md for configuration and deployment notes.
 
-![Disaggregated serving flow](docs/assets/disaggregated_flow.svg)
+## Serving measurements
 
----
+Measure concurrent requests:
 
-## 12. TensorRT-LLM benchmark
-
-The Python benchmark measures concurrent streaming requests.
-
-Example:
-
-```bash
+~~~bash
 PYTHONPATH=dlse_runtime/python \
 python3 dlse_runtime/benchmarks/trtllm_benchmark.py \
   --model TinyLlama/TinyLlama-1.1B-Chat-v1.0 \
   --requests 8 \
   --max-tokens 64
-```
+~~~
 
-The result contains:
+The benchmark records per-request TTFT and ITL, token counts, total time and aggregate throughput. It writes a JSON result file.
 
-- aggregate generated tokens/s;
-- TTFT p50;
-- ITL p50;
-- ITL p99;
-- per-request measurements.
+Run request counts 1, 2, 4 and 8:
 
-Run the full request-count matrix:
-
-```bash
+~~~bash
 ./dlse_runtime/scripts/run_trtllm_matrix.sh \
   TinyLlama/TinyLlama-1.1B-Chat-v1.0
-```
+~~~
 
-This runs request counts 1, 2, 4 and 8 and stores JSON results under
-`dlse_runtime/results/`.
+For baseline-versus-optimized settings:
 
-### Baseline versus optimized serving
-
-For the throughput claim, use the A/B runner:
-
-```bash
+~~~bash
 ./dlse_runtime/scripts/run_serve_ab.sh \
   TinyLlama/TinyLlama-1.1B-Chat-v1.0
-```
+~~~
 
-The script starts the baseline server on port 8100 and the optimized server on
-port 8200. It runs the same random workload at concurrency 1, 2, 4 and 8 using
-TensorRT-LLM's `benchmark_serving` tool and stores the raw JSON results under
-`dlse_runtime/results/serve_ab/`.
+That test compares a combined configuration change: chunked prefill, KV block reuse and decode graph buckets. It does not isolate one feature's contribution. Results are written under dlse_runtime/results/serve_ab/.
 
-The baseline leaves chunked prefill and CUDA Graph configuration disabled. The
-optimized configuration enables chunked prefill, KV-cache block reuse and
-decode CUDA Graph buckets.
+Before comparing serving numbers, keep the model checkpoint, tokenizer, input distribution, output length, GPU, software version, quantization and parallelism fixed. Save the environment record and raw JSON beside the result.
 
-This A/B test measures the combined serving configuration. The separate CUDA
-benchmark is used for the contiguous-versus-paged attention comparison.
+## Reading the measurements correctly
 
----
+| Statement | Evidence needed |
+| --- | --- |
+| Bounded inter-token latency | Target-GPU ITL p50/p95/p99 for mixed prompts and decode load |
+| Throughput multiplier | Identical-workload baseline and optimized token/s results |
+| KV memory reduction | Same workload and model with measured KV allocation; separate this from total-process VRAM |
+| Kernel-launch latency | Specify host enqueue time or device execution time; do not mix them |
 
-## 13. Runtime metrics
+The resume targets of 8x throughput, more than 60% VRAM recovered, and below 2 microseconds launch latency are not reported as measured results here. Use those values only if matching target-hardware measurements support them.
 
-The TensorRT-LLM server exposes:
+## Development checks
 
-```
-/health
-/metrics
-/version
-```
-
-After at least one inference request, collect the metrics:
-
-```bash
-./dlse_runtime/scripts/collect_server_metrics.sh
-```
-
-The returned metrics contain iteration latency, GPU memory usage and KV-cache
-statistics. These are the measurements to use when evaluating the memory and
-latency claims.
-
----
-
-## 14. Benchmark methodology
-
-The repository separates implementation from benchmark claims.
-
-### Throughput
-
-Run the same model, tokenizer, prompt distribution, generation length, GPU,
-quantization and parallelism for the baseline and optimized configurations.
-
-Compute:
-
-```
-optimized tokens/s
-------------------
-baseline tokens/s
-```
-
-The resume value of 8x should only be used when the measured ratio reaches 8
-under the documented workload.
-
-### KV memory
-
-The repository defines the host allocator comparison as:
-
-```
-contiguous reservation - paged reservation
-------------------------------------------
-      contiguous reservation
-```
-
-The resulting percentage is a KV reservation reduction. A whole-process VRAM
-claim requires the same model weights and other GPU allocations in both runs.
-
-### CUDA Graph launch
-
-The included graph benchmark reports host enqueue overhead. It is not the same
-quantity as kernel execution time or end-to-end ITL.
-
-For the final <2 microsecond resume statement, record the exact measurement
-method, GPU, CUDA version, driver version and warm-up policy.
-
----
-
-## 15. Resume evidence
-
-| Resume statement | Repository implementation | Required measurement |
-|---|---|---|
-| Bounded ITL with continuous batching and chunked prefill | C++ scheduler + benchmark | End-to-end target-GPU ITL under mixed request lengths |
-| 8x inference throughput | TensorRT-LLM benchmark matrix | Same-workload baseline/optimized ratio of at least 8 |
-| >60% wasted VRAM recovered | Paged KV allocator + CUDA A/B benchmark | Controlled KV/process memory comparison supporting the percentage |
-| <2 microsecond launch latency | CUDA Graph benchmark | Target-GPU timing that supports the exact wording |
-
-The current repository contains the implementation and the measurement
-harnesses. The GPU-dependent numeric claims remain inputs to be measured on the
-target hardware.
-
----
-
-## 16. Development commands
-
-```bash
+~~~bash
 make test
 make dlse-bench
-make dlse-cuda
-make clean
-```
+make dlse-experiment
+~~~
 
-Useful direct commands:
+For host checks with runtime sanitizers:
 
-```bash
-cmake -S . -B build
-cmake --build build --parallel
-ctest --test-dir build --output-on-failure
-```
+~~~bash
+cmake -S . -B build-sanitize \
+  -DCMAKE_BUILD_TYPE=Debug \
+  -DDLSE_ENABLE_SANITIZERS=ON
+cmake --build build-sanitize --parallel
+ctest --test-dir build-sanitize --output-on-failure
+~~~
 
-Record the execution environment before a benchmark:
+The GitHub Actions workflow tests Debug, Release and sanitizer builds. It also runs the host benchmark, checks shell/Python syntax, validates repository figures, and saves experiment logs and CSV files as run artifacts.
 
-```bash
-./dlse_runtime/scripts/record_environment.sh
-```
+## Maintainer
 
----
-
-## 17. Figures and validation assets
-
-The README figures are kept in `docs/assets/` and are generated from the
-repository implementation or from an executed host benchmark.
-
-![Runtime architecture](docs/assets/architecture.svg)
-
-![Host validation](docs/assets/host_validation.svg)
-
-![Continuous batching trace](docs/assets/scheduler_trace.svg)
-
-![KV reservation](docs/assets/kv_reservation.svg)
-
-![Disaggregated serving](docs/assets/disaggregated_flow.svg)
-
-No GPU throughput, GPU memory or kernel-latency screenshot is presented as a
-measured result until it has been produced by the CUDA/TensorRT-LLM benchmark
-on the target machine.
-
----
-
-## 18. TensorRT-LLM documentation
-
-The TensorRT-LLM integration in this repository follows the current
-`trtllm-serve` and LLM API documentation:
-
-- [trtllm-serve](https://nvidia.github.io/TensorRT-LLM/commands/trtllm-serve.html)
-- [Disaggregated Serving](https://nvidia.github.io/TensorRT-LLM/features/disagg-serving.html)
-- [LLM API Reference](https://nvidia.github.io/TensorRT-LLM/llm-api/reference.html)
-
-The documentation is external to this repository; the pinned container tag in
-the helper scripts provides a reproducible execution environment.
-
----
-
-## 19. Source provenance
-
-The inspected upstream revisions are listed in
-[`dlse_runtime/third_party/SOURCES.md`](dlse_runtime/third_party/SOURCES.md).
-
-The original merged tree is retained for reference. The executable serving
-implementation is isolated under `dlse_runtime/` so it can be built, tested
-and benchmarked independently.
-
+Pirate-Emperor
