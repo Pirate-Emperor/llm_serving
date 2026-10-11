@@ -64,6 +64,27 @@ class RepositoryQualityTests(unittest.TestCase):
                     check_inherited_sizes(child, size)
 
             check_inherited_sizes(root)
+            for node in texts:
+                fill = node.attrib.get("fill")
+                self.assertIsNotNone(fill, f"missing text fill: {path.name}")
+                self.assertRegex(
+                    fill or "",
+                    r"^(#[0-9a-fA-F]{3}|#[0-9a-fA-F]{6}|black|white|currentColor)$",
+                    f"invalid or invisible text fill in {path.name}: {fill!r}",
+                )
+            if path.name == "scheduler_iterations.svg":
+                sizes = [
+                    float(re.sub(r"[^0-9.]", "", node.attrib["font-size"]))
+                    for node in texts if "font-size" in node.attrib
+                ]
+                self.assertGreaterEqual(min(sizes), 18.0, "scheduler iteration labels should be legible")
+
+    def test_terminal_figures_use_shell_style_without_window_dots(self) -> None:
+        for name in ("host_validation.svg", "execution_snapshot.svg"):
+            source = (ROOT / "docs" / "assets" / name).read_text()
+            self.assertIn("runner@ubuntu:~/llm_serving", source)
+            self.assertIn("DejaVu Sans Mono", source)
+            self.assertNotIn("<circle", source, f"{name} should not mimic macOS window controls")
 
     def test_required_runtime_files_exist(self) -> None:
         required = [

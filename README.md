@@ -116,7 +116,7 @@ The recorded host reference output is:
 
 This is a deterministic host simulation. The decode-gap value is not GPU inter-token latency, and the KV result is not a measurement of total process VRAM.
 
-![Terminal output from host validation](docs/assets/host_validation.svg)
+![Bash-style summary of recorded host validation](docs/assets/host_validation.svg)
 
 ## Parameter experiments and data analysis
 
@@ -144,7 +144,7 @@ The KV-cache sweep tests page sizes 8, 16, 32 and 64 over short, mixed, ragged a
 
 ![KV-cache allocation experiment](docs/assets/kv_sweep.svg)
 
-![Execution snapshot from the validation workflow](docs/assets/execution_snapshot.svg)
+![Bash-style host experiment summary](docs/assets/execution_snapshot.svg)
 
 The detailed host results, including the parameter tables and findings, are in [Host experiment summary](dlse_runtime/docs/host_experiment_summary.md).
 

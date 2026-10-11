@@ -34,6 +34,17 @@ def svg_text(x: float, y: float, text: str, size: int = 18,
             f'font-weight="{weight}" fill="{fill}">{safe}</text>')
 
 
+
+def svg_mono_text(x: float, y: float, text: str, size: int = 21,
+                  fill: str = "#e2e8f0", weight: str = "400",
+                  anchor: str = "start") -> str:
+    safe = (text.replace("&", "&amp;").replace("<", "&lt;")
+            .replace(">", "&gt;").replace('"', "&quot;"))
+    return (f'<text x="{x:.1f}" y="{y:.1f}" text-anchor="{anchor}" '
+            f'font-family="DejaVu Sans Mono, Consolas, monospace" font-size="{size}" '
+            f'font-weight="{weight}" fill="{fill}">{safe}</text>')
+
+
 def write_svg(path: Path, width: int, height: int, parts: list[str]) -> None:
     body = "\n".join(parts)
     path.write_text(
@@ -120,7 +131,7 @@ def scheduler_iteration_chart(rows: list[dict[str, str]], path: Path) -> None:
     for tick in range(0, scale_max + 1, 100):
         y = bottom - usable_y * tick / scale_max
         parts.append(f'<line x1="{left}" y1="{y:.1f}" x2="{right}" y2="{y:.1f}" stroke="#334155"/>')
-        parts.append(svg_text(left - 18, y + 6, str(tick), 16, "#94a3b8", anchor="end"))
+        parts.append(svg_text(left - 18, y + 6, str(tick), 18, "#94a3b8", anchor="end"))
 
     for chunk in chunks:
         parts.append(svg_text(x_for(chunk), bottom + 38, f"Chunk {chunk}", 18, "#cbd5e1", anchor="middle"))
@@ -163,7 +174,7 @@ def scheduler_iteration_chart(rows: list[dict[str, str]], path: Path) -> None:
                     x,
                     point_y + label_offsets[rank],
                     str(round(value)),
-                    16,
+                    18,
                     color,
                     "700",
                     "middle",
@@ -210,6 +221,7 @@ def kv_chart(rows: list[dict[str, str]], path: Path) -> None:
     write_svg(path, width, height, parts)
 
 
+
 def terminal_chart(scheduler_count: int, kv_count: int,
                    benchmark_log: Path | None, ctest_log: Path | None,
                    path: Path) -> None:
@@ -233,28 +245,38 @@ def terminal_chart(scheduler_count: int, kv_count: int,
             suite_text = "all CTest suites passed"
         else:
             suite_text = "CTest log captured; inspect the raw log"
+
+    width, height = 1600, 820
     parts = [
-        '<rect x="36" y="34" width="1368" height="690" rx="18" fill="#111827" stroke="#475569" stroke-width="2"/>',
-        '<path d="M54 34H1386Q1404 34 1404 52V100H36V52Q36 34 54 34Z" fill="#263449"/>',
-        '<circle cx="72" cy="67" r="9" fill="#fb7185"/><circle cx="104" cy="67" r="9" fill="#fbbf24"/><circle cx="136" cy="67" r="9" fill="#34d399"/>',
-        svg_text(720, 75, "Recorded host experiment output", 21, "#e2e8f0", "700", "middle"),
-        svg_text(76, 145, f"Scheduler rows checked: {scheduler_count}", 22, "#d1fae5", "700"),
-        svg_text(76, 184, f"KV-cache rows checked: {kv_count}", 22, "#d1fae5", "700"),
-        svg_text(76, 235, "CTest status: " + suite_text, 20, "#bfdbfe"),
+        '<rect x="24" y="24" width="1552" height="772" rx="8" fill="#0b1220" stroke="#334155" stroke-width="2"/>',
+        '<rect x="24" y="24" width="1552" height="62" fill="#172333"/>',
+        svg_mono_text(62, 63, "runner@ubuntu:~/llm_serving", 21, "#7dd3fc", "700"),
+        svg_mono_text(1538, 63, "HOST EXPERIMENT SUMMARY", 18, "#cbd5e1", "700", "end"),
+        svg_mono_text(66, 130, "$ ctest --test-dir build --output-on-failure", 21, "#93c5fd", "700"),
+        svg_mono_text(66, 168, "CTest status: " + suite_text, 21, "#86efac", "700"),
+        svg_mono_text(66, 220, "$ ./build/bin/dlse_runtime_experiments build/experiment-results", 21, "#93c5fd", "700"),
+        svg_mono_text(100, 258, f"scheduler_rows_checked={scheduler_count}", 21, "#e2e8f0"),
+        svg_mono_text(100, 293, f"kv_rows_checked={kv_count}", 21, "#e2e8f0"),
+        svg_mono_text(100, 328, "analysis_status=PASS", 21, "#86efac", "700"),
+        svg_mono_text(66, 382, "$ ./build/bin/dlse_runtime_bench", 21, "#93c5fd", "700"),
     ]
     labels = [
-        ("max_decode_gap_iterations", "Maximum decode gap"),
-        ("long_prompt_prefilled", "Long prompt tokens"),
-        ("kv_logical_tokens", "Logical KV tokens"),
-        ("kv_reserved_tokens", "Reserved KV tokens"),
-        ("kv_capacity_reclaim", "Reservation reduction fraction"),
+        ("max_decode_gap_iterations", "max_decode_gap_iterations"),
+        ("long_prompt_prefilled", "long_prompt_prefilled"),
+        ("kv_logical_tokens", "kv_logical_tokens"),
+        ("kv_reserved_tokens", "kv_reserved_tokens"),
+        ("kv_capacity_reclaim", "kv_capacity_reclaim"),
     ]
     for i, (key, label) in enumerate(labels):
-        y = 295 + i * 54
-        parts.append(svg_text(100, y, label, 20, "#94a3b8"))
-        parts.append(svg_text(620, y, values[key], 22, "#e2e8f0", "700"))
-    parts.append(svg_text(76, 670, "Host simulation only. This snapshot does not show GPU timings.", 17, "#94a3b8"))
-    write_svg(path, 1440, 760, parts)
+        y = 420 + i * 34
+        parts.append(svg_mono_text(100, y, f"{label}={values[key]}", 20, "#e2e8f0"))
+    parts.extend([
+        '<line x1="66" y1="620" x2="1534" y2="620" stroke="#334155" stroke-width="1"/>',
+        svg_mono_text(66, 665, "scope=host_simulation", 19, "#cbd5e1", "700"),
+        svg_mono_text(66, 705, "Decode gap is measured in scheduler iterations, not latency.", 18, "#94a3b8"),
+        svg_mono_text(66, 740, "KV reservation reduction is not a measurement of total process VRAM.", 18, "#94a3b8"),
+    ])
+    write_svg(path, width, height, parts)
 
 
 def main() -> int:
