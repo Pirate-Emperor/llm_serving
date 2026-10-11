@@ -42,6 +42,9 @@ jobs:
       - name: C++ test suites
         run: ctest --test-dir build --output-on-failure | tee build/ctest.txt
 
+      - name: Detailed test case log
+        run: ./build/bin/dlse_runtime_tests all | tee build/test_cases.txt
+
       - name: Runtime benchmark
         run: ./build/bin/dlse_runtime_bench | tee build/host_benchmark.txt
 
@@ -77,6 +80,7 @@ jobs:
           if-no-files-found: error
           path: |
             build/ctest.txt
+            build/test_cases.txt
             build/host_benchmark.txt
             build/experiments.log
             build/experiment-results/*.csv
