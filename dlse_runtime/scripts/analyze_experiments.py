@@ -125,8 +125,10 @@ def scheduler_iteration_chart(rows: list[dict[str, str]], path: Path) -> None:
     for chunk in chunks:
         parts.append(svg_text(x_for(chunk), bottom + 38, f"Chunk {chunk}", 18, "#cbd5e1", anchor="middle"))
 
+    series_values: dict[str, list[float]] = {}
     for index, workload in enumerate(workloads):
         values = [means[(workload, chunk)] for chunk in chunks]
+        series_values[workload] = values
         points = " ".join(
             f"{x_for(chunk):.1f},{bottom - usable_y * value / scale_max:.1f}"
             for chunk, value in zip(chunks, values)
@@ -139,10 +141,34 @@ def scheduler_iteration_chart(rows: list[dict[str, str]], path: Path) -> None:
             x = x_for(chunk)
             y = bottom - usable_y * value / scale_max
             parts.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="7" fill="{colors[index]}" stroke="#0b1220" stroke-width="2"/>')
-            parts.append(svg_text(x, y - 14, str(round(value)), 16, colors[index], "700", "middle"))
         legend_x = 310 + index * 350
         parts.append(f'<line x1="{legend_x}" y1="700" x2="{legend_x + 40}" y2="700" stroke="{colors[index]}" stroke-width="5"/>')
         parts.append(svg_text(legend_x + 52, 706, labels[workload], 18, "#e2e8f0"))
+
+    for chunk_index, chunk in enumerate(chunks):
+        x = x_for(chunk)
+        ranked = sorted(
+            (
+                bottom - usable_y * series_values[workload][chunk_index] / scale_max,
+                workload,
+                series_values[workload][chunk_index],
+            )
+            for workload in workloads
+        )
+        label_offsets = [-28, -2, 24]
+        for rank, (point_y, workload, value) in enumerate(ranked):
+            color = colors[workloads.index(workload)]
+            parts.append(
+                svg_text(
+                    x,
+                    point_y + label_offsets[rank],
+                    str(round(value)),
+                    16,
+                    color,
+                    "700",
+                    "middle",
+                )
+            )
 
     parts.append(svg_text(64, 755, "Iteration count is a scheduler workload measure, not latency or throughput.", 17, "#94a3b8"))
     write_svg(path, width, height, parts)
