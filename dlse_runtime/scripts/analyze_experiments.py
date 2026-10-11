@@ -229,7 +229,7 @@ def main() -> int:
             "",
             "## Lowest p95 decode-gap setting for each request mix",
             "",
-            "| Workload | Batch | Token budget | Prefill chunk | Mean p95 decode gap (iterations) | Mean scheduler iterations |",
+            "| Workload | Batch | Token budget | Prefill chunk | p95 decode gap (iterations) | Mean scheduler iterations |",
             "|---|---:|---:|---:|---:|---:|",
         ]
         by_workload: dict[str, list[dict[str, str]]] = defaultdict(list)
@@ -261,11 +261,24 @@ def main() -> int:
 
         report.extend([
             "",
+            "## What the data suggests",
+            "",
+            "- The prompt-burst cases had a p95 decode gap of one scheduler iteration in every tested configuration. This does not measure real token latency.",
+            "- The decode-heavy cases still had a p95 gap of two iterations at the best tested setting because the number of active requests exceeded the configured batch limit.",
+            "- For mixed long prompts, the lowest p95 gap was two iterations. Larger batch limits reduced the number of scheduler iterations in the tested simulation, but those counts are not wall-clock time.",
+            "- For short sequences, the page-size sweep reserved 552 tokens at page size 8 and 704 tokens at page size 64. Internal fragmentation rose from 0% to 21.59%.",
+            "- For ragged sequence lengths, internal fragmentation rose from 0.85% with page size 8 to 5.50% with page size 64.",
+            "- The mixed and long KV workloads were aligned to all four page sizes, so those cases showed no internal fragmentation from page rounding.",
+            "",
             "## Scope",
             "",
             "These are deterministic host simulations and allocation calculations. They help compare scheduler settings and page sizes, but they do not measure GPU kernel time, end-to-end inter-token latency, or total process VRAM.",
         ])
-        (args.results_dir / "analysis_summary.md").write_text("\n".join(report) + "\n", encoding="utf-8")
+        report_text = "\n".join(report) + "\n"
+        (args.results_dir / "analysis_summary.md").write_text(report_text, encoding="utf-8")
+        (ROOT / "dlse_runtime" / "docs" / "host_experiment_summary.md").write_text(
+            report_text, encoding="utf-8"
+        )
         print(f"scheduler_rows_checked={len(scheduler_rows)}")
         print(f"kv_rows_checked={len(kv_rows)}")
         print(f"scheduler_chart={ASSETS / 'scheduler_sweep.svg'}")
