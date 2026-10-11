@@ -181,7 +181,7 @@ def scheduler_iteration_chart(rows: list[dict[str, str]], path: Path) -> None:
                 )
             )
 
-    parts.append(svg_text(64, 755, "Iteration count is a scheduler workload measure, not latency or throughput.", 17, "#94a3b8"))
+    parts.append(svg_text(64, 755, "Iteration count is a scheduler workload measure, not latency or throughput.", 18, "#94a3b8"))
     write_svg(path, width, height, parts)
 
 
