@@ -144,6 +144,8 @@ The KV-cache sweep tests page sizes 8, 16, 32 and 64 over short, mixed, ragged a
 
 ![Execution snapshot from the validation workflow](docs/assets/execution_snapshot.svg)
 
+The detailed host results, including the parameter tables and findings, are in [Host experiment summary](dlse_runtime/docs/host_experiment_summary.md).
+
 The generated CSV files should be kept with their environment record when results are used in a report. The host CI workflow also uploads the experiment data, logs, and generated charts as run artifacts.
 
 ## CUDA build and experiments
