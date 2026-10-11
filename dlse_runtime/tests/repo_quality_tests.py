@@ -58,10 +58,18 @@ class RepositoryQualityTests(unittest.TestCase):
             self.assertEqual(root.tag, SVG_NS + "svg", path.name)
             texts = root.findall(".//" + SVG_NS + "text")
             self.assertTrue(texts, f"figure has no labels: {path.name}")
-            for node in texts:
-                self.assertIn("font-size", node.attrib, f"missing explicit font size: {path.name}")
-                size = float(re.sub(r"[^0-9.]", "", node.attrib["font-size"]))
-                self.assertGreaterEqual(size, 16.0, f"small SVG font: {path.name}")
+            def check_inherited_sizes(node: ET.Element, inherited: float | None = None) -> None:
+                declared = node.attrib.get("font-size")
+                size = inherited
+                if declared is not None:
+                    size = float(re.sub(r"[^0-9.]", "", declared))
+                if node.tag == SVG_NS + "text":
+                    self.assertIsNotNone(size, f"missing font size on text or parent: {path.name}")
+                    self.assertGreaterEqual(float(size), 16.0, f"small SVG font: {path.name}")
+                for child in node:
+                    check_inherited_sizes(child, size)
+
+            check_inherited_sizes(root)
 
     def test_required_runtime_files_exist(self) -> None:
         required = [
