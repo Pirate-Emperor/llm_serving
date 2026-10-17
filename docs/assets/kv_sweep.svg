@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="930" viewBox="0 0 1440 930"><rect width="100%" height="100%" rx="24" fill="#0b1220"/><text x="64" y="64" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="32" font-weight="700" fill="#f8fafc">KV-cache experiment: reserved-capacity reduction</text>
+<text x="64" y="105" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="20" font-weight="400" fill="#b6c2d2">16 measured allocator cases across four page sizes</text>
+<text x="64" y="145" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="18" font-weight="400" fill="#b6c2d2">Paged reservation versus batch × max sequence length; not total VRAM.</text>
+<line x1="405" y1="175" x2="405" y2="865" stroke="#334155"/>
+<text x="405" y="166" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#94a3b8">0%</text>
+<line x1="582" y1="175" x2="582" y2="865" stroke="#334155"/>
+<text x="582" y="166" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#94a3b8">20%</text>
+<line x1="759" y1="175" x2="759" y2="865" stroke="#334155"/>
+<text x="759" y="166" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#94a3b8">40%</text>
+<line x1="936" y1="175" x2="936" y2="865" stroke="#334155"/>
+<text x="936" y="166" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#94a3b8">60%</text>
+<line x1="1113" y1="175" x2="1113" y2="865" stroke="#334155"/>
+<text x="1113" y="166" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#94a3b8">80%</text>
+<line x1="1290" y1="175" x2="1290" y2="865" stroke="#334155"/>
+<text x="1290" y="166" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#94a3b8">100%</text>
+<text x="64" y="230" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="22" font-weight="700" fill="#f8fafc">Short</text>
+<text x="235" y="260" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#cbd5e1">page 8</text>
+<rect x="405" y="242" width="870.09129" height="22" rx="4" fill="#38bdf8"/>
+<text x="1285.0912899999998" y="260" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#f8fafc">98.3%</text>
+<text x="235" y="290" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#cbd5e1">page 16</text>
+<rect x="405" y="272" width="869.87535" height="22" rx="4" fill="#34d399"/>
+<text x="1284.87535" y="290" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#f8fafc">98.3%</text>
+<text x="235" y="320" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#cbd5e1">page 32</text>
+<rect x="405" y="302" width="868.578825" height="22" rx="4" fill="#fbbf24"/>
+<text x="1283.578825" y="320" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#f8fafc">98.1%</text>
+<text x="235" y="350" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#cbd5e1">page 64</text>
+<rect x="405" y="332" width="865.98666" height="22" rx="4" fill="#e879f9"/>
+<text x="1280.98666" y="350" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#f8fafc">97.9%</text>
+<text x="64" y="396" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="22" font-weight="700" fill="#f8fafc">Mixed</text>
+<text x="235" y="426" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#cbd5e1">page 8</text>
+<rect x="405" y="408" width="793.38834" height="22" rx="4" fill="#38bdf8"/>
+<text x="1208.38834" y="426" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#f8fafc">89.6%</text>
+<text x="235" y="456" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#cbd5e1">page 16</text>
+<rect x="405" y="438" width="793.38834" height="22" rx="4" fill="#34d399"/>
+<text x="1208.38834" y="456" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#f8fafc">89.6%</text>
+<text x="235" y="486" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#cbd5e1">page 32</text>
+<rect x="405" y="468" width="793.38834" height="22" rx="4" fill="#fbbf24"/>
+<text x="1208.38834" y="486" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#f8fafc">89.6%</text>
+<text x="235" y="516" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#cbd5e1">page 64</text>
+<rect x="405" y="498" width="793.38834" height="22" rx="4" fill="#e879f9"/>
+<text x="1208.38834" y="516" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#f8fafc">89.6%</text>
+<text x="64" y="562" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="22" font-weight="700" fill="#f8fafc">Ragged</text>
+<text x="235" y="592" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#cbd5e1">page 8</text>
+<rect x="405" y="574" width="792.74052" height="22" rx="4" fill="#38bdf8"/>
+<text x="1207.7405199999998" y="592" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#f8fafc">89.6%</text>
+<text x="235" y="622" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#cbd5e1">page 16</text>
+<rect x="405" y="604" width="792.0927" height="22" rx="4" fill="#34d399"/>
+<text x="1207.0927000000001" y="622" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#f8fafc">89.5%</text>
+<text x="235" y="652" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#cbd5e1">page 32</text>
+<rect x="405" y="634" width="790.796175" height="22" rx="4" fill="#fbbf24"/>
+<text x="1205.796175" y="652" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#f8fafc">89.4%</text>
+<text x="235" y="682" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#cbd5e1">page 64</text>
+<rect x="405" y="664" width="788.203125" height="22" rx="4" fill="#e879f9"/>
+<text x="1203.203125" y="682" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#f8fafc">89.1%</text>
+<text x="64" y="728" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="22" font-weight="700" fill="#f8fafc">Long</text>
+<text x="235" y="758" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#cbd5e1">page 8</text>
+<rect x="405" y="740" width="324.96138" height="22" rx="4" fill="#38bdf8"/>
+<text x="739.96138" y="758" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#f8fafc">36.7%</text>
+<text x="235" y="788" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#cbd5e1">page 16</text>
+<rect x="405" y="770" width="324.96138" height="22" rx="4" fill="#34d399"/>
+<text x="739.96138" y="788" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#f8fafc">36.7%</text>
+<text x="235" y="818" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#cbd5e1">page 32</text>
+<rect x="405" y="800" width="324.96138" height="22" rx="4" fill="#fbbf24"/>
+<text x="739.96138" y="818" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#f8fafc">36.7%</text>
+<text x="235" y="848" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#cbd5e1">page 64</text>
+<rect x="405" y="830" width="324.96138" height="22" rx="4" fill="#e879f9"/>
+<text x="739.96138" y="848" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="400" fill="#f8fafc">36.7%</text>
+<text x="64" y="902" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="400" fill="#94a3b8">Results depend on the fixed sequence lengths and page size.</text></svg>

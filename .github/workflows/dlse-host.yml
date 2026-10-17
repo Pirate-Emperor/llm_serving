@@ -1,0 +1,95 @@
+name: DLSE host validation
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  host:
+    name: Host checks ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Debug
+            build_type: Debug
+            sanitizers: "OFF"
+          - name: Release
+            build_type: Release
+            sanitizers: "OFF"
+          - name: ASan-UBSan
+            build_type: Debug
+            sanitizers: "ON"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure
+        run: >-
+          cmake -S . -B build
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+          -DDLSE_ENABLE_SANITIZERS=${{ matrix.sanitizers }}
+
+      - name: Build
+        run: cmake --build build --parallel 2
+
+      - name: C++ test suites
+        run: ctest --test-dir build --output-on-failure | tee build/ctest.txt
+
+      - name: Detailed test case log
+        run: ./build/bin/dlse_runtime_tests all | tee build/test_cases.txt
+
+      - name: Runtime benchmark
+        run: ./build/bin/dlse_runtime_bench | tee build/host_benchmark.txt
+
+      - name: Parameter and KV-cache sweeps
+        run: |
+          ./build/bin/dlse_runtime_experiments build/experiment-results \
+            | tee build/experiments.log
+
+      - name: Analyze results and create charts
+        run: python3 dlse_runtime/scripts/analyze_experiments.py build/experiment-results
+
+      - name: CUDA command generation
+        run: |
+          make -n dlse-cuda > build/cuda-default.txt
+          make -n CUDA_ARCH=80 dlse-cuda > build/cuda-a100.txt
+          grep -Fq -- "-DCMAKE_CUDA_ARCHITECTURES=86" build/cuda-default.txt
+          grep -Fq -- "-DCMAKE_CUDA_ARCHITECTURES=80" build/cuda-a100.txt
+
+      - name: Shell syntax
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
+            bash -n "$file"
+          done < <(find dlse_runtime/scripts -type f -name '*.sh' -print0)
+
+      - name: Python syntax
+        run: python3 -m compileall -q dlse_runtime/python dlse_runtime/benchmarks dlse_runtime/tests dlse_runtime/scripts
+
+      - name: Repository and figure checks
+        run: python3 dlse_runtime/tests/repo_quality_tests.py
+
+      - name: Save validation results
+        uses: actions/upload-artifact@v4
+        with:
+          name: host-results-${{ matrix.name }}
+          if-no-files-found: error
+          path: |
+            build/ctest.txt
+            build/test_cases.txt
+            build/host_benchmark.txt
+            build/cuda-default.txt
+            build/cuda-a100.txt
+            build/experiments.log
+            build/experiment-results/*.csv
+            build/experiment-results/analysis_summary.md
+            docs/assets/scheduler_sweep.svg
+            docs/assets/scheduler_iterations.svg
+            docs/assets/kv_sweep.svg
